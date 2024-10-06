@@ -1,5 +1,5 @@
 import express from 'express';
-import { signup, login } from '../controllers/auth'; // Adjust the path based on your actual folder structure
+import { signup, login,validateToken  } from '../controllers/auth'; // Adjust the path based on your actual folder structure
 
 const router = express.Router();
 
@@ -8,5 +8,8 @@ router.post('/signup', signup);
 
 // Route for login
 router.post('/login', login);
+
+
+router.get('/validate-token', validateToken);
 
 export default router;

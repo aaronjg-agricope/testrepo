@@ -1,5 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
-
+import { DeliveryAddressSchema } from './restaurant'
+import { CartItemSchema } from './cart';
 interface IBackupOption extends Document {
     product: Types.ObjectId;
     variant: string;
@@ -29,7 +30,7 @@ const BackupOptionSchema = new Schema<IBackupOption>({
 }, { _id: false });
 
 const OrderItemSchema = new Schema<IOrderItem>({
-    product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+    product:  CartItemSchema,
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
     backupOption: BackupOptionSchema
@@ -37,11 +38,11 @@ const OrderItemSchema = new Schema<IOrderItem>({
 
 const OrderSchema = new Schema<IOrder>({
     restaurant: { type: Schema.Types.ObjectId, ref: 'Restaurant', required: true },
-    items: { type: [OrderItemSchema], required: true },
+    items: { type: [CartItemSchema], required: true },
     totalPrice: { type: Number, required: true },
     orderPlacedAt: { type: Date, default: Date.now },
     paymentMethod: { type: String, required: true },
-    deliveryAddress: { type: Schema.Types.ObjectId, required: true }, // Store as ObjectId reference
+    deliveryAddress: DeliveryAddressSchema, // Use DeliveryAddressSchema instead of ObjectId
     orderNumber: { type: String, unique: true, required: true }, // New field for order number
     status: { type: String, default: 'Confirming order' } 
 }, { timestamps: true });

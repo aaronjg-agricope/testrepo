@@ -54,7 +54,7 @@ const KYCInformationSchema = new Schema<IKYCInformation>({
 }, { _id: false });
 
 // Define the DeliveryAddress schema
-const DeliveryAddressSchema = new Schema<IDeliveryAddress>({
+export const DeliveryAddressSchema = new Schema<IDeliveryAddress>({
     _id: { type: Schema.Types.ObjectId, auto: true }, // Ensure _id is auto-generated
     label: { type: String, required: true }, // e.g., Home, Office, etc.
     streetAddress: { type: String, required: true },

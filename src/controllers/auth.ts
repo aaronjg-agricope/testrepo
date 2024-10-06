@@ -5,6 +5,8 @@ import { BlobServiceClient } from '@azure/storage-blob';
 import Restaurant from '../models/restaurant'; // Adjust the path as necessary
 import mongoose from 'mongoose';
 // import { uploadImageToAzure } from '../services/imageHandler'; // Adjust the path as necessary
+import dotenv from 'dotenv';
+dotenv.config();
 
 interface UserBody{
     email:string;
@@ -30,7 +32,12 @@ interface SignupRequestBody {
   interface Request{
     message: string
   }
-
+  interface DecodedToken {
+    userId: string;
+    email: string;
+    iat: number;
+    exp: number;
+  }
 
 interface User {
     email: any;
@@ -42,6 +49,8 @@ interface User {
     phoneNumber?: string;
     logoImage?: string;
   }
+
+const bcryptkey = process.env.bcryptkey;
 
   export const signup: RequestHandler<{}, Request | SuccessfulRequest, SignupRequestBody> = async (req, res, next): Promise<void> => {
     const {
@@ -102,7 +111,23 @@ interface User {
   };
   
   
-
+  export const validateToken: RequestHandler = async (req, res, next): Promise<void> => {
+    const authHeader = req.headers.authorization;
+  
+    if (!authHeader) {
+      res.status(401).json({ message: 'Authorization header missing' });
+      return;
+    }
+  
+    const token = authHeader.split(' ')[1];
+  
+    try {
+      const decoded = jwt.verify(token, bcryptkey as string) as DecodedToken;
+      res.status(200).json({ user: decoded, isValid: true });
+    } catch (err) {
+      res.status(401).json({ message: 'Invalid token', isValid: false });
+    }
+  };
 
   export const login: RequestHandler<{}, Request | SuccessfulRequest, UserBody> = async (req, res, next): Promise<void> => {
     const email = req.body.email;
@@ -136,7 +161,7 @@ interface User {
           email: loadedUser.email,
           userId: loadedUser._id.toString()
         },
-        'your_secret_key',
+        bcryptkey as string,
         { expiresIn: '1h' }
       );
       res.status(200).json({ message: "Restaurant has been logged in!",
