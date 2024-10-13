@@ -7,6 +7,8 @@ const express_1 = __importDefault(require("express"));
 const admin_1 = require("../controllers/admin"); // Adjust the path based on your project structure
 const multer_1 = __importDefault(require("multer"));
 const is_auth_1 = __importDefault(require("../middleware/is-auth")); // Update path as needed
+const order_1 = require("../controllers/order");
+const admin_auth_1 = require("../middleware/admin-auth");
 const router = express_1.default.Router();
 const storage = multer_1.default.memoryStorage(); // Use memory storage so that files are not stored on the disk
 const upload = (0, multer_1.default)({ storage }); // Configure Multer to use memory storage
@@ -18,4 +20,8 @@ router.delete('/delete/:id', is_auth_1.default, admin_1.deleteProduct); // Delet
 router.post('/add-variant/:id', is_auth_1.default, upload.array('media'), admin_1.addVariant); // Add a new variant to a product
 router.put('/edit-variant/:productId/:variantIndex', is_auth_1.default, admin_1.editVariant); // Edit an existing variant of a product
 router.delete('/delete-variant/:productId/:variantIndex', is_auth_1.default, admin_1.deleteVariant); // Delete a variant from a product
+router.get('/orders', admin_auth_1.authenticateToken, order_1.getAllOrders);
+router.get('/orders/:id', admin_auth_1.authenticateToken, order_1.getOrderById);
+router.put('/orders/:id/status', admin_auth_1.authenticateToken, order_1.updateOrderStatus);
+router.post('/login', admin_1.loginAdmin);
 exports.default = router;

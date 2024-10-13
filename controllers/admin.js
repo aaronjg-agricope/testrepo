@@ -3,12 +3,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteVariant = exports.editVariant = exports.addVariant = exports.deleteProduct = exports.editProduct = exports.createProduct = void 0;
+exports.deleteVariant = exports.editVariant = exports.addVariant = exports.deleteProduct = exports.editProduct = exports.createProduct = exports.loginAdmin = void 0;
 const product_1 = __importDefault(require("../models/product")); // Adjust the path based on your project structure
 const uuid_1 = require("uuid"); // To create unique names for the files
 const storage_blob_1 = require("@azure/storage-blob"); // Import Azure Blob SDK
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+const admin_1 = __importDefault(require("../models/admin"));
+const loginAdmin = async (req, res, next) => {
+    const { email, password } = req.body;
+    try {
+        const admin = await admin_1.default.findOne({ email });
+        if (!admin) {
+            const error = new Error('An admin with this email could not be found.');
+            error.statusCode = 401;
+            throw error;
+        }
+        const isPasswordCorrect = await bcryptjs_1.default.compare(password, admin.password);
+        if (!isPasswordCorrect) {
+            const error = new Error('Wrong password.');
+            error.statusCode = 401;
+            throw error;
+        }
+        const token = jsonwebtoken_1.default.sign({ email: admin.email, adminId: admin._id.toString() }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.status(200).json({
+            message: 'Admin logged in successfully',
+            token,
+            adminId: admin._id.toString(),
+            email: admin.email,
+            name: admin.name,
+        });
+    }
+    catch (error) {
+        const err = error;
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+exports.loginAdmin = loginAdmin;
 // Azure Blob Storage configuration
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING || ''; // Load from .env
 const containerName = 'product-imgs'; // Replace with your actual container name

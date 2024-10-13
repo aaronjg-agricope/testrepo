@@ -9,14 +9,17 @@ const product_1 = __importDefault(require("../models/product"));
 // Add an item to the cart
 const addItemToCart = async (req, res, next) => {
     const { restaurantId, productId, countryOrigin, variantIndex, quantity, packagingWeight, type } = req.body;
+    console.log(req.body)
     try {
         // Find the product
         const product = await product_1.default.findById(productId);
+        console.log(product)
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
         // Find the variant
         const variant = product.variants[variantIndex];
+        console.log(variant)
         if (!variant) {
             return res.status(404).json({ message: 'Variant not found' });
         }
@@ -34,6 +37,7 @@ const addItemToCart = async (req, res, next) => {
                 item.type === type);
             if (cartItemIndex > -1) {
                 // Update existing item quantity
+                console.log(cart.items[cartItemIndex])
                 if (cart.items[cartItemIndex].quantity + quantity > priceDetail.inventory) {
                     return res.status(400).json({ message: 'Exceeding available stock' });
                 }
@@ -64,6 +68,8 @@ const addItemToCart = async (req, res, next) => {
                     }],
             });
         }
+
+        console.log("were here")
         // Update total price and save the cart
         cart.totalPrice = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         await cart.save();
